@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+         http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+         http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd ">
+	<context:component-scan base-package="com.bridgelabz.controller" />
+	<mvc:annotation-driven />
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	<context:property-placeholder location="classpath:application.properties"/>
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/Keep" />
+		<property name="username" value="root" />
+		<property name="password" value="root" />
+	</bean>
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="annotatedClasses">
+			<list>
+				<value>com.bridgelabz.model.User</value>
+				<value>com.bridgelabz.model.Note</value>
+				<value>com.bridgelabz.model.Collaborater</value>
+				<value>com.bridgelabz.model.Label</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+	</bean>
+	 <task:annotation-driven executor="myExecutor"/>
+     <task:executor id="myExecutor" pool-size="5" queue-capacity="11"/> 
+
+	<task:scheduler id="noteDelete" pool-size="5" /> 
+	<task:scheduled-tasks scheduler="noteDelete" >
+	 <task:scheduled ref="noteDeleter" method="deleteTrashNote" fixed-delay="200000" />
+	  </task:scheduled-tasks>	
+	  <bean id="noteDeleter" class="com.bridgelabz.util.DeleteScheduler"></bean>
+ <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+    <property name="host" value="smtp.gmail.com" />
+    <property name="port" value="587" />
+    <property name="username" value="${email.username}" />
+    <property name="password" value="${email.password}" />
+ 
+    <property name="javaMailProperties">
+
+        <props>
+            <prop key="mail.transport.protocol">smtp</prop>
+            <prop key="mail.smtp.auth">true</prop>
+            <prop key="mail.smtp.starttls.enable">true</prop>
+        </props>
+    </property>
+</bean>
+<!-- <bean id="connectionFactory"
+      class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+    <constructor-arg value="localhost"/>
+   
+</bean> -->
+
+<bean class="com.bridgelabz.service.TokenServiceImpl"></bean>
+    <bean id="noteDao" class="com.bridgelabz.dao.NoteDaoImpl"></bean>
+    <bean class="com.bridgelabz.service.NoteServiceImpl"></bean>
+    <bean class="com.bridgelabz.service.MailerImpl"></bean>
+    <bean class="com.bridgelabz.service.UserServiceImpl"></bean>
+	<bean id="userDao" class="com.bridgelabz.dao.UserDaoImpl"></bean>
+	<bean id="validator" class="com.bridgelabz.util.Validator"></bean>
+	<bean class="com.bridgelabz.util.PasswordChecker"></bean>
+	<bean class="com.bridgelabz.social.GoogleConnection"></bean>
+	<bean class="com.bridgelabz.social.FBConnnection"></bean>
+	<bean class="com.bridgelabz.service.ProducerImpl"></bean>
+	<bean  id ="consumer" class="com.bridgelabz.service.ConsumerServiceImpl"></bean>
+
+	<rabbit:connection-factory id="connectionFactory"/>
+
+   <rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
+
+  <!--    <rabbit:admin connection-factory="connectionFactory"/> -->
+
+    <rabbit:queue name="myqueue"/>
+		 <rabbit:listener-container
+        connection-factory="connectionFactory">
+        <rabbit:listener ref="consumer" queue-names="myqueue" />
+    </rabbit:listener-container>
+	<mvc:resources location="/directives/" mapping="/directives/**" />
+	<mvc:resources location="/template/" mapping="/template/**" />	
+	<mvc:resources location="/script/" mapping="/script/**" />
+	<mvc:resources location="/controller/" mapping="/controller/**" />
+	<mvc:resources location="/service/" mapping="/service/**" />
+	<mvc:resources location="/css/" mapping="/css/**" />
+	<mvc:resources location="/images/" mapping="/images/**" />
+	<mvc:resources location="/bower_components/" mapping="/bower_components/**" />
+	
+</beans>

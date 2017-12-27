@@ -1,0 +1,57 @@
+<top-nav-bar></top-nav-bar>
+<side-nav-bar></side-nav-bar>
+<div id="main" style="margin-left: {{mleft}}" >
+
+	<div id="note-container"
+		class=" col-sm-12 col-md-12 col-xs-12 col-lg-12">
+		<div class="col-lg-1 col-md-1 hidden-sm"></div>
+		<div class="col-md-10 col-sm-12 col-xs-12 col-lg-10">
+			
+			<div ng-repeat="note in notes |filter:searchText" id="note-scope"
+				class="{{viewcol}}">
+				
+				<div class="card" style="background-color: {{note.color}}">
+				<img class="pull-right" src="images/unpinned.svg"  ng-click="pinned(note,true)" width="22" height="22">
+					<div class="card-block" ng-click="showModal(note)">
+					
+				<div ng-if="note.image"><img ng-src="{{note.image}}" height="100%" width="100%"></div>
+						<b><div class="card-title" ng-bind-html="note.title"></div></b>
+						<div class="card-text" ng-bind-html="note.body"></div>
+					</div>
+					<div class="row ">
+					<div class="col-sm-12 labelbox">
+					<div id="reminder" ng-if="note.reminderStatus!=null">
+					{{note.reminderStatus}}<span class="closebtn" ng-click="removeReminder(note)">&#x274C;</span>
+					 
+					</div>  
+					<div ng-repeat="label in note.labels">
+						<div id="reminder" ng-if="label.labelName!=null">
+					{{label.labelName}}<span class="closebtn" ng-click="toggleLabelOfNote(note,label)">&#x274C;</span>
+					 </div>
+					</div>  
+					</div>
+					</div>
+					<div class="row" ng-init="getUserlist(note,user,$index)">
+						<div ng-repeat="user in note.collabratorUsers">
+								<div class="col-sm-1">
+									<img ng-src="{{user.profileUrl}}" title="{{user.email}}" ng-click="openCollboarate(note,user)" class="img-circle" height="25" width="25"/>
+								</div>
+							</div>
+						</div>
+
+		<input ng-show="false" id="image" type='file' ng-model-instant 
+		ng-model="file" onchange="angular.element(this).scope().imageUpload(this)" />					
+		<div class="note-icons">
+				<reminder-option  class="icons-margin"></reminder-option>
+				<img ng-src="images/collaborator.svg" ng-click="openCollboarate(note,user,$index)" ng-init="getOwner(note)" class="icons-margin">
+				<color-pallet class="icons-margin"></color-pallet>
+				<img ng-src="images/image.svg" ng-click="openImageUploader(note,'note')" width="22" height="22" class="icons-margin">
+				<img ng-src="images/archive.svg" ng-click="doArchived(note,true,false)" class="icons-margin"> 
+				<more-options></more-options>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-1 col-md-1 hidden-sm"></div>
+	</div>
+</div>
